@@ -10,6 +10,9 @@ class Scraper:
         options.add_argument('-headless')
         self.driver = webdriver.Firefox(options=options)
 
+    def __del__(self):
+        self.driver.quit()
+
     def get_albums_by_artist(self, artist):
         artist = "-".join(artist.lower().split())
         artist = ''.join(c for c in artist if c.isalnum() or c == '-')
@@ -18,10 +21,14 @@ class Scraper:
         try:
             self.driver.get(url)
             time.sleep(0.2)
-            show_more_button = self.driver.find_element(By.ID, 'disco_header_show_link_s')
-            if show_more_button:
-                self.driver.execute_script("arguments[0].click();", show_more_button)
-            time.sleep(2)
+            try:
+                show_more_button = self.driver.find_element(By.ID, 'disco_header_show_link_s')
+                if show_more_button:
+                    self.driver.execute_script("arguments[0].click();", show_more_button)
+                    time.sleep(2)
+            except:
+                None
+            
             soup = BeautifulSoup(self.driver.page_source, 'html.parser')
             album_div = soup.find('div', id='disco_type_s')
             if album_div:
@@ -41,9 +48,6 @@ class Scraper:
 
         except Exception as e:
             return f"An error occurred: {e}"
-        
-        finally:
-            self.driver.quit()
 
 def main():
     scraper = Scraper()

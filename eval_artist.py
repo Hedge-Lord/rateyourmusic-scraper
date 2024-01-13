@@ -1,4 +1,5 @@
-from scraper import Scraper
+# EXAMPLE USE !
+from rymscraper import scraper
 
 class BasedLevel:
     def __init__(self, max_rating, basedness):
@@ -29,8 +30,8 @@ def evaluate_basedness(max_rating):
 def main():
     artist = input("Evaluate Artist: ")
     print(f"EXAMPLE RUN: Evaluating {artist} Basedness Level:")
-    scraper = Scraper()
-    albums = scraper.get_albums_by_artist(artist)
+    rymscraper = scraper.Scraper()
+    albums = rymscraper.get_albums_by_artist(artist)
     max_rating = max([float(a[1]) for a in albums if a[1]])
     level = BasedLevel(max_rating, evaluate_basedness(max_rating))
 
