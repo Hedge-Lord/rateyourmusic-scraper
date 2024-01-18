@@ -31,12 +31,25 @@ def main():
     artist = input("Evaluate Artist: ")
     print(f"EXAMPLE RUN: Evaluating {artist} Basedness Level:")
     rymscraper = scraper.Scraper()
-    albums = rymscraper.get_albums_by_artist(artist)
+    info = rymscraper.get_artist_info(artist)
+    albums = info['albums']
     max_rating = max([float(a[1]) for a in albums if a[1]])
     level = BasedLevel(max_rating, evaluate_basedness(max_rating))
 
-    print("Max Album Rating:", level.max_rating)
-    print("Basedness Level:", level.basedness)
+    print("Highest Album Rating:", level.max_rating)
+    print("Verdict:", level.basedness)
+
+    yesno = input("View all albums and genres? y/n: ")
+    if yesno == "n" or yesno != "y":
+        print("byebye!")
+        return
+    else:
+        for g in info['genres']:
+            print(g)
+        print("Albums: ")
+        for a in albums:
+            print(a[0])
+            print("Rated:", a[1], "Ratings:", a[2])
 
 
 if __name__ == "__main__":

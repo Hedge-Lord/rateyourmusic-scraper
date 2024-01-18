@@ -13,23 +13,39 @@ class Scraper:
     def __del__(self):
         self.driver.quit()
 
-    def get_albums_by_artist(self, artist):
-        artist = "-".join(artist.lower().split())
-        artist = ''.join(c for c in artist if c.isalnum() or c == '-')
-        url = "https://rateyourmusic.com/artist/" + artist
-
+    def get_artist_url(self, artist):
+        url = get_search_url(artist)
         try:
             self.driver.get(url)
             time.sleep(0.2)
+            soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+            a = soup.find('a', class_='searchpage')
+            path = a['href'] if a else None
+            return "https://rateyourmusic.com" + path
+        except:
+            None
+
+    def get_artist_soup(self, artist):
+        url = self.get_artist_url(artist)
+        try:
+            self.driver.get(url)
+            time.sleep(0.2)
+            return BeautifulSoup(self.driver.page_source, 'html.parser')
+        except:
+            return None
+
+    def get_artist_info(self, artist):
+        try:
+            soup = self.get_artist_soup(artist)
             try:
                 show_more_button = self.driver.find_element(By.ID, 'disco_header_show_link_s')
                 if show_more_button:
                     self.driver.execute_script("arguments[0].click();", show_more_button)
                     time.sleep(2)
+                    soup = BeautifulSoup(self.driver.page_source, 'html.parser')
             except:
                 None
             
-            soup = BeautifulSoup(self.driver.page_source, 'html.parser')
             album_div = soup.find('div', id='disco_type_s')
             if album_div:
                 albums = album_div.find_all('div', class_='disco_release')
@@ -42,16 +58,18 @@ class Scraper:
                     [(e.text.strip() if e and e.text is not None else None) for e in a]
                     for a in album_info_html
                 ]
-                return album_info
+                genres = self.get_artist_genres(soup)
+                return {'albums': album_info, 'genres': genres}
             else:
-                return []
+                return {}
 
         except Exception as e:
             return f"An error occurred: {e}"
-
-def main():
-    scraper = Scraper()
-    print(scraper.get_albums_by_artist("miles davis"))
-
-if __name__ == "__main__":
-    main()
+        
+    def get_artist_genres(self, soup):
+        genres = soup.find_all('a', class_='genre')
+        genres = [g.text.strip() for g in genres]
+        return genres
+    
+def get_search_url(query):
+    return "https://rateyourmusic.com/search?searchterm=" + ("+".join(query.split()))
